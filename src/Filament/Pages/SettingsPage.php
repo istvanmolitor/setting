@@ -54,6 +54,8 @@ class SettingsPage extends Page implements HasForms
 
     public function save(): void
     {
+        $this->form->validate();
+        
         app(SettingHandlerService::class)->saveFormData($this->settingSlug, $this->formData);
 
         Notification::make()
