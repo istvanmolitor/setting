@@ -9,15 +9,6 @@ use Molitor\Setting\Models\SettingGroup;
 
 interface SettingRepositoryInterface
 {
-    public function create(
-        SettingGroup $settingGroup,
-        string $name,
-        string $defaultValue,
-        string $label,
-        string $type,
-        string $description
-    ): Setting;
-
     public function exists($name): bool;
 
     public function set($name, $value): self;
@@ -29,6 +20,4 @@ interface SettingRepositoryInterface
     public function getValues(array $values): array;
 
     public function setValues(array $values): void;
-
-    public function getValuesBySettingGroup(SettingGroup $settingGroup): array;
 }

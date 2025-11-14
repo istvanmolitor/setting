@@ -2,18 +2,11 @@
 
 namespace Molitor\Setting\Filament\Pages;
 
-use Filament\Actions\Action;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Molitor\Setting\Models\Setting;
-use Molitor\Setting\Repositories\SettingGroupRepositoryInterface;
-use Molitor\Setting\Repositories\SettingRepositoryInterface;
+use Molitor\Setting\Services\SettingHandlerService;
 
 class SettingsPage extends Page implements HasForms
 {
@@ -24,29 +17,29 @@ class SettingsPage extends Page implements HasForms
 
     public ?array $formData = [];
 
-    protected ?SettingGroupRepositoryInterface $settingGroupRepository = null;
-    protected ?SettingRepositoryInterface $settingRepository = null;
+    public string|null $settingSlug = null;
 
-    public string|null $activeSettingGroupSlug = null;
-
-    protected function ensureRepositories(): void
-    {
-        $this->settingGroupRepository ??= app(SettingGroupRepositoryInterface::class);
-        $this->settingRepository ??= app(SettingRepositoryInterface::class);
-    }
+    public array $tabs = [];
 
     public function mount(): void
     {
-        $this->ensureRepositories();
-        $this->activeSettingGroupSlug = $this->settingGroupRepository?->getDefault()?->slug;
-        $this->loadSettings();
+        $settingHandler = app(SettingHandlerService::class);
+        $this->tabs = $settingHandler->getTabs();
+        $this->selectSettingTab($settingHandler->getDefaultSlug());
     }
 
     public function loadSettings(): void
     {
-        $this->ensureRepositories();
-        $settingGroup = $this->settingGroupRepository?->getBySlug($this->activeSettingGroupSlug);
-        $this->formData = $this->settingRepository?->getValuesBySettingGroup($settingGroup);
+        /** @var SettingHandlerService $settingHandler */
+        $settingHandler = app(SettingHandlerService::class);
+        $this->formData = $settingHandler->getFormData($this->settingSlug);
+        $this->form->fill($this->formData);
+    }
+
+    public function selectSettingTab(string $slug): void
+    {
+        $this->settingSlug = $slug;
+        $this->loadSettings();
     }
 
     protected function getFormStatePath(): ?string
@@ -56,34 +49,12 @@ class SettingsPage extends Page implements HasForms
 
     protected function getFormSchema(): array
     {
-        $this->ensureRepositories();
-
-        $settingGroup = $this->settingGroupRepository?->getBySlug($this->activeSettingGroupSlug);
-
-        if (! $settingGroup) {
-            return [];
-        }
-
-        return $settingGroup->settings->map(function (Setting $setting) {
-            return match ($setting->type) {
-                'text' => TextInput::make($setting->name)->label($setting->label),
-                'number' => TextInput::make($setting->name)->numeric()->label($setting->label),
-                'checkbox' => Toggle::make($setting->name)->label($setting->label),
-                'textarea' => Textarea::make($setting->name)->label($setting->label),
-                'select' => Select::make($setting->name)
-                    ->label($setting->label)
-                    ->options([]),
-                default => TextInput::make($setting->name)->label($setting->label),
-            };
-        })->toArray();
+        return app(SettingHandlerService::class)->getFormSchema($this->settingSlug);
     }
 
     public function save(): void
     {
-        $this->ensureRepositories();
-        foreach ($this->formData ?? [] as $key => $value) {
-            $this->settingRepository?->set($key, $value);
-        }
+        app(SettingHandlerService::class)->saveFormData($this->settingSlug, $this->formData);
 
         Notification::make()
             ->title('Beállítások mentve')
@@ -93,7 +64,6 @@ class SettingsPage extends Page implements HasForms
 
     protected function getActions(): array
     {
-        // A Mentés gomb az űrlap alatt jelenjen meg, ezért itt nem jelenítünk meg akciókat.
         return [];
     }
 }

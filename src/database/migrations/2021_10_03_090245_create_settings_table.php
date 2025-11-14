@@ -15,16 +15,8 @@ class CreateSettingsTable extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('setting_group_id');
-            $table->foreign('setting_group_id')->references('id')->on('setting_groups');
-
-            $table->string('label');
-            $table->string('type')->default('text');
             $table->string('name');
             $table->text('value')->nullable();
-            $table->text('default_value')->nullable();
-            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

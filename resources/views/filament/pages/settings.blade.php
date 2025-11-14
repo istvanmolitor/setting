@@ -1,11 +1,11 @@
 <x-filament-panels::page>
     <div class="flex gap-4">
         <div class="w-1/4 space-y-1">
-            @foreach(\Molitor\Setting\Models\SettingGroup::orderBy('name')->get() as $cat)
+            @foreach($tabs as $tab)
                 <button
-                    wire:click="$set('activeSettingGroupSlug', '{{ $cat->slug }}'); loadSettings()"
-                    class="w-full text-left px-3 py-2 rounded {{ $activeSettingGroupSlug === $cat->slug ? 'bg-primary-100 text-primary-700' : 'hover:bg-gray-100' }}">
-                    {{ $cat->name }}
+                    wire:click="selectSettingTab('{{ $tab['slug'] }}')"
+                    class="w-full text-left px-3 py-2 rounded flex items-center gap-2 {{ $settingSlug === $tab['slug'] ? 'bg-primary-100 text-primary-700' : 'hover:bg-gray-100' }}">
+                    <x-filament::icon :icon="$tab['icon']" class="w-5 h-5 mr-1" /><span>{{ $tab['label'] }}</span>
                 </button>
             @endforeach
         </div>

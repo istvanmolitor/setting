@@ -76,26 +76,4 @@ class SettingRepository implements SettingRepositoryInterface
             $this->set($name, $value);
         }
     }
-
-    public function create(SettingGroup $settingGroup, string $name, string $defaultValue, string $label, string $type, string $description): Setting
-    {
-        return $this->setting->create([
-            'setting_group_id' => $settingGroup->id,
-            'name' => $name,
-            'default_value' => serialize($defaultValue),
-            'label' => $label,
-            'type' => $type,
-            'description' => $description,
-        ]);
-    }
-
-    public function getValuesBySettingGroup(SettingGroup $settingGroup): array
-    {
-        $resultValues = [];
-        /** @var Setting $setting */
-        foreach ($settingGroup->settings as $setting) {
-            $resultValues[$setting->name] = $this->get($setting->name, $setting->default_value);
-        }
-        return $resultValues;
-    }
 }

@@ -3,10 +3,9 @@
 namespace Molitor\Setting\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Molitor\Setting\Repositories\SettingGroupRepository;
-use Molitor\Setting\Repositories\SettingGroupRepositoryInterface;
 use Molitor\Setting\Repositories\SettingRepository;
 use Molitor\Setting\Repositories\SettingRepositoryInterface;
+use Molitor\Setting\Services\SettingHandlerService;
 
 class SettingServiceProvider extends ServiceProvider
 {
@@ -18,7 +17,10 @@ class SettingServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->bind(SettingGroupRepositoryInterface::class, SettingGroupRepository::class);
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
+
+        $this->app->singleton(SettingHandlerService::class, function () {
+            return new SettingHandlerService();
+        });
     }
 }
