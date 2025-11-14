@@ -6,6 +6,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Contracts\Support\Htmlable;
 use Molitor\Setting\Services\SettingHandlerService;
 
 class SettingsPage extends Page implements HasForms
@@ -14,6 +15,11 @@ class SettingsPage extends Page implements HasForms
 
     protected string $view = 'setting::filament.pages.settings';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-cog';
+
+    public function getTitle(): string|Htmlable
+    {
+        return 'Beállítások';
+    }
 
     public ?array $formData = [];
 
@@ -55,7 +61,7 @@ class SettingsPage extends Page implements HasForms
     public function save(): void
     {
         $this->form->validate();
-        
+
         app(SettingHandlerService::class)->saveFormData($this->settingSlug, $this->formData);
 
         Notification::make()

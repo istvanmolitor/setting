@@ -3,6 +3,8 @@
 namespace Molitor\Setting\Services;
 
 use Exception;
+use Molitor\Setting\Events\SettingAfterSaveEvent;
+use Molitor\Setting\Events\SettingBeforeSaveEvent;
 
 class SettingHandlerService
 {
@@ -54,9 +56,17 @@ class SettingHandlerService
 
     public function saveFormData(string $slug, array $formData): void
     {
-        $settingHandler = $this->getBySlug($slug);
-        if($settingHandler) {
-            $settingHandler->saveFormData($formData);
+        $settingForm = $this->getBySlug($slug);
+        if ($settingForm) {
+            $previousFormData = $this->getFormData($slug);
+
+            $settingForm->beforeSave($previousFormData, $formData);
+            SettingBeforeSaveEvent::dispatch($slug, $previousFormData, $formData);
+
+            $settingForm->saveFormData($formData);
+
+            $settingForm->afterSave($formData, $formData);
+            SettingAfterSaveEvent::dispatch($slug, $formData, $formData);
         }
     }
 
@@ -85,5 +95,14 @@ class SettingHandlerService
             return [];
         }
         return $settingHandler->getDefaults();
+    }
+
+    public function get(string $slug, string $name): mixed
+    {
+        $settingHandler = $this->getBySlug($slug);
+        if(!$settingHandler) {
+            return null;
+        }
+        return $settingHandler->get($name);
     }
 }

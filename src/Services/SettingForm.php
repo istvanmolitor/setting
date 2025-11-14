@@ -2,11 +2,15 @@
 
 namespace Molitor\Setting\Services;
 
-use Filament\Schemas\Schema;
 use Molitor\Setting\Repositories\SettingRepositoryInterface;
 
 abstract class SettingForm
 {
+    protected function getRepository(): SettingRepositoryInterface
+    {
+        return app(SettingRepositoryInterface::class);
+    }
+
     abstract public function getSlug(): string;
 
     abstract public function getLabel(): string;
@@ -30,11 +34,8 @@ abstract class SettingForm
     public function saveFormData(array $formData): void
     {
         $slug = $this->getSlug();
-
-        /** @var SettingRepositoryInterface $settingRepository */
-        $settingRepository = app(SettingRepositoryInterface::class);
         foreach ($this->getFormFields() as $field) {
-            $settingRepository->set($slug . ':' . $field, $formData[$field] ?? null);
+            $this->getRepository()->set($slug . ':' . $field, $formData[$field] ?? null);
         }
     }
 
@@ -49,11 +50,29 @@ abstract class SettingForm
         $defaults = $this->getDefaults();
 
         $data = [];
-        /** @var SettingRepositoryInterface $settingRepository */
-        $settingRepository = app(SettingRepositoryInterface::class);
+        $repository = $this->getRepository();
         foreach ($this->getFormFields() as $field) {
-            $data[$field] = $settingRepository->get($slug . ':' . $field, $defaults[$field] ?? null);
+            $data[$field] = $repository->get($slug . ':' . $field, $defaults[$field] ?? null);
         }
         return $data;
+    }
+
+    public function beforeSave(array $previousFormData): void
+    {
+    }
+
+    public function afterSave(array $formData): void
+    {
+    }
+
+    public function get(string $name): mixed
+    {
+        $default = $this->getDefaults()[$name] ?? null;
+        return $this->getRepository()->get($this->getSlug() . ':' . $name, $default);
+    }
+
+    public function set(string $name, mixed $value): void
+    {
+        $this->getRepository()->set($this->getSlug() . ':' . $name, $value);
     }
 }
