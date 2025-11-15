@@ -7,6 +7,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Gate;
 use Molitor\Setting\Services\SettingHandlerService;
 
 class SettingsPage extends Page implements HasForms
@@ -15,6 +16,24 @@ class SettingsPage extends Page implements HasForms
 
     protected string $view = 'setting::filament.pages.settings';
     protected static string|null|\BackedEnum $navigationIcon = 'heroicon-o-cog';
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Beállítások';
+    }
+
+    public static function canAccess(): bool
+    {
+        if(!Gate::allows('acl', 'setting')) {
+            return false;
+        }
+
+        $settingHandler = app(SettingHandlerService::class);
+        if($settingHandler->getDefaultSlug() === null) {;
+            return false;
+        }
+        return true;
+    }
 
     public function getTitle(): string|Htmlable
     {
@@ -30,8 +49,13 @@ class SettingsPage extends Page implements HasForms
     public function mount(): void
     {
         $settingHandler = app(SettingHandlerService::class);
+        $defaultSlug = $settingHandler->getDefaultSlug();
+        if($defaultSlug === null) {
+            abort(403);
+        }
+
         $this->tabs = $settingHandler->getTabs();
-        $this->selectSettingTab($settingHandler->getDefaultSlug());
+        $this->selectSettingTab($defaultSlug);
     }
 
     public function loadSettings(): void

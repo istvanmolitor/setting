@@ -22,17 +22,20 @@ class SettingHandlerService
         if ($this->settingForms === null) {
             $this->settingForms = [];
             foreach ($this->settingFormClasses as $className) {
-                $fettingForm = app($className);
-                if (!($fettingForm instanceof SettingForm)) {
+                /** @var SettingForm $settingForm */
+                $settingForm = app($className);
+                if (!($settingForm instanceof SettingForm)) {
                     throw new Exception("Class {$className} must implement " . SettingForm::class);
                 }
-                $this->settingForms[$fettingForm->getSlug()] = $fettingForm;
+                if($settingForm->canAccess()) {
+                    $this->settingForms[$settingForm->getSlug()] = $settingForm;
+                }
             }
         }
         return $this->settingForms;
     }
 
-    public function getDefaultSlug(): string
+    public function getDefaultSlug(): string|null
     {
         $handles = $this->getSettingForms();
         return array_key_first($handles);

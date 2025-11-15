@@ -2,6 +2,7 @@
 
 namespace Molitor\Setting\Services;
 
+use Illuminate\Support\Facades\Gate;
 use Molitor\Setting\Repositories\SettingRepositoryInterface;
 
 abstract class SettingForm
@@ -74,5 +75,10 @@ abstract class SettingForm
     public function set(string $name, mixed $value): void
     {
         $this->getRepository()->set($this->getSlug() . ':' . $name, $value);
+    }
+
+    public function canAccess(): bool
+    {
+        return Gate::allows('acl', 'setting');
     }
 }
