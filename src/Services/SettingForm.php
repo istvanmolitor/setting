@@ -34,9 +34,17 @@ abstract class SettingForm
 
     public function saveFormData(array $formData): void
     {
+        $defaultFormData = $this->getDefaults();
+
         $slug = $this->getSlug();
+        $data = [];
         foreach ($this->getFormFields() as $field) {
-            $this->getRepository()->set($slug . ':' . $field, $formData[$field] ?? null);
+            $data[$field] = $formData[$field] ?? $defaultFormData[$field] ?? null;
+        }
+        $data = $this->prepareData($data);
+        $repository = $this->getRepository();
+        foreach ($data as $field => $value) {
+            $repository->set($slug . ':' . $field, $value);
         }
     }
 
@@ -55,7 +63,12 @@ abstract class SettingForm
         foreach ($this->getFormFields() as $field) {
             $data[$field] = $repository->get($slug . ':' . $field, $defaults[$field] ?? null);
         }
-        return $data;
+        return $this->prepareData($data);
+    }
+
+    public function prepareData(array $formData): array
+    {
+        return $formData;
     }
 
     public function beforeSave(array $previousFormData): void

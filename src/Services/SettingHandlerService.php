@@ -63,6 +63,8 @@ class SettingHandlerService
         if ($settingForm) {
             $previousFormData = $this->getFormData($slug);
 
+            $formData = $settingForm->prepareData($formData);
+
             $settingForm->beforeSave($previousFormData, $formData);
             SettingBeforeSaveEvent::dispatch($slug, $previousFormData, $formData);
 

@@ -79,14 +79,18 @@ class SettingsPage extends Page implements HasForms
 
     protected function getFormSchema(): array
     {
-        return app(SettingHandlerService::class)->getFormSchema($this->settingSlug);
+        /** @var SettingHandlerService $service */
+        $service = app(SettingHandlerService::class);
+        return $service->getFormSchema($this->settingSlug);
     }
 
     public function save(): void
     {
         $this->form->validate();
 
-        app(SettingHandlerService::class)->saveFormData($this->settingSlug, $this->formData);
+        /** @var SettingHandlerService $service */
+        $service = app(SettingHandlerService::class);
+        $service->saveFormData($this->settingSlug, $this->formData);
 
         Notification::make()
             ->title('Beállítások mentve')
