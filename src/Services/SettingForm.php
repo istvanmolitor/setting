@@ -15,73 +15,73 @@ abstract class SettingForm
     abstract public function getSlug(): string;
 
     abstract public function getLabel(): string;
-    abstract public function getForm(): array;
 
-    public function getIcon(): string {
-        return 'heroicon-o-cog';
-    }
+    abstract public function getFields(): array;
 
-    public function getTab(): array
-    {
-        return [
-            'slug' => $this->getSlug(),
-            'label' => $this->getLabel(),
-            'icon' => $this->getIcon(),
-        ];
-    }
-
-    abstract public function getFormFields(): array;
-
-    public function saveFormData(array $formData): void
-    {
-        $defaultFormData = $this->getDefaults();
-
-        $slug = $this->getSlug();
-        $data = [];
-        foreach ($this->getFormFields() as $field) {
-            $data[$field] = $formData[$field] ?? $defaultFormData[$field] ?? null;
-        }
-        $data = $this->prepareData($data);
-        $repository = $this->getRepository();
-        foreach ($data as $field => $value) {
-            $repository->set($slug . ':' . $field, $value);
-        }
-    }
-
-    public function getDefaults(): array
+    public function getDefaultValues(): array
     {
         return [];
     }
 
-    public function getFormData(): array
+    public function prepareValues(array $values): array
+    {
+        $defaultValues = $this->getDefaultValues();
+        $preparedValues = [];
+        foreach ($this->getFields() as $field) {
+            $preparedValues[$field] = $values[$field] ?? $defaultValues[$field] ?? null;
+        }
+        return $preparedValues;
+    }
+
+    public function saveValues(array $values): void
+    {
+        $oldValues = $this->getValues();
+
+        $slug = $this->getSlug();
+        $preparedValues = $this->prepareValues($values);
+
+        $this->beforeSave($oldValues, $preparedValues);
+
+        $repository = $this->getRepository();
+        foreach ($preparedValues as $fieldName => $value) {
+            $repository->set($slug . ':' . $fieldName, $value);
+        }
+    }
+
+    public function getValues(): array
     {
         $slug = $this->getSlug();
-        $defaults = $this->getDefaults();
+        $defaultValues = $this->getDefaultValues();
 
         $data = [];
         $repository = $this->getRepository();
-        foreach ($this->getFormFields() as $field) {
-            $data[$field] = $repository->get($slug . ':' . $field, $defaults[$field] ?? null);
+        foreach ($this->getFields() as $field) {
+            $data[$field] = $repository->get($slug . ':' . $field, $defaultValues[$field] ?? null);
         }
-        return $this->prepareData($data);
+        return $data;
     }
 
-    public function prepareData(array $formData): array
+    public function getData(): array
     {
-        return $formData;
+        return [];
     }
 
-    public function beforeSave(array $previousFormData): void
+    public function beforeSave(array $oldValues, array $values): void
     {
     }
 
-    public function afterSave(array $formData): void
+    public function afterSave(array $values): void
     {
+    }
+
+    public function fieldExists(string $name): bool
+    {
+        return array_key_exists($name, $this->getFields());
     }
 
     public function get(string $name): mixed
     {
-        $default = $this->getDefaults()[$name] ?? null;
+        $default = $this->getDefaultValues()[$name] ?? null;
         return $this->getRepository()->get($this->getSlug() . ':' . $name, $default);
     }
 
@@ -93,5 +93,15 @@ abstract class SettingForm
     public function canAccess(): bool
     {
         return Gate::allows('acl', 'setting');
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'slug' => $this->getSlug(),
+            'label' => $this->getLabel(),
+            'values' => $this->getValues(),
+            'data' => $this->getData(),
+        ];
     }
 }

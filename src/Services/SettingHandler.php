@@ -6,13 +6,13 @@ use Exception;
 use Molitor\Setting\Events\SettingAfterSaveEvent;
 use Molitor\Setting\Events\SettingBeforeSaveEvent;
 
-class SettingHandlerService
+class SettingHandler
 {
     protected array $settingFormClasses = [];
 
     protected null|array $settingForms = null;
 
-    public function register(string $className): void
+    public function registerSettingForm(string $className): void
     {
         $this->settingFormClasses[] = $className;
     }
@@ -27,84 +27,77 @@ class SettingHandlerService
                 if (!($settingForm instanceof SettingForm)) {
                     throw new Exception("Class {$className} must implement " . SettingForm::class);
                 }
-                if($settingForm->canAccess()) {
-                    $this->settingForms[$settingForm->getSlug()] = $settingForm;
-                }
+                $this->settingForms[$settingForm->getSlug()] = $settingForm;
             }
         }
         return $this->settingForms;
     }
 
-    public function getDefaultSlug(): string|null
-    {
-        $handles = $this->getSettingForms();
-        return array_key_first($handles);
-    }
-
-    public function getBySlug(string $slug): SettingForm|null
+    public function getSettingFormBySlug(string $slug): SettingForm|null
     {
         $handles = $this->getSettingForms();
         return $handles[$slug] ?? null;
     }
 
-    public function getTabs(): array
+    public function toArray(): array
     {
         $tabs = [];
-        /** @var SettingForm $handler */
-        foreach ($this->getSettingForms() as $handler) {
-            $tabs[] = $handler->getTab();
+        /** @var SettingForm $settingForm */
+        foreach ($this->getSettingForms() as $settingForm) {
+            $tabs[] = [
+                'slug' => $settingForm->getSlug(),
+                'label' => $settingForm->getLabel(),
+            ];
         }
         return $tabs;
     }
 
-    public function saveFormData(string $slug, array $formData): void
+    public function saveSettingFormValues(string $slug, array $values): void
     {
-        $settingForm = $this->getBySlug($slug);
+        $settingForm = $this->getSettingFormBySlug($slug);
         if ($settingForm) {
-            $previousFormData = $this->getFormData($slug);
+            $previousSettingFormValues = $this->getSettingFormValues($slug);
 
-            $formData = $settingForm->prepareData($formData);
+            $settingForm->beforeSave($previousSettingFormValues, $values);
+            SettingBeforeSaveEvent::dispatch($slug, $previousSettingFormValues, $values);
 
-            $settingForm->beforeSave($previousFormData, $formData);
-            SettingBeforeSaveEvent::dispatch($slug, $previousFormData, $formData);
+            $settingForm->saveValues($values);
 
-            $settingForm->saveFormData($formData);
-
-            $settingForm->afterSave($formData, $formData);
-            SettingAfterSaveEvent::dispatch($slug, $formData, $formData);
+            $settingForm->afterSave($values, $values);
+            SettingAfterSaveEvent::dispatch($slug, $values, $values);
         }
     }
 
     public function getFormSchema(string $slug): array
     {
-        $settingHandler = $this->getBySlug($slug);
+        $settingHandler = $this->getSettingFormBySlug($slug);
         if(!$settingHandler) {
             return [];
         }
         return $settingHandler->getForm();
     }
 
-    public function getFormData(string $slug): array
+    public function getSettingFormValues(string $slug): array
     {
-        $settingHandler = $this->getBySlug($slug);
+        $settingHandler = $this->getSettingFormBySlug($slug);
         if(!$settingHandler) {
             return [];
         }
-        return $settingHandler->getFormData();
+        return $settingHandler->getValues();
     }
 
     public function getDefaults(string $slug): array
     {
-        $settingHandler = $this->getBySlug($slug);
+        $settingHandler = $this->getSettingFormBySlug($slug);
         if(!$settingHandler) {
             return [];
         }
-        return $settingHandler->getDefaults();
+        return $settingHandler->getDefaultValues();
     }
 
     public function get(string $slug, string $name): mixed
     {
-        $settingHandler = $this->getBySlug($slug);
+        $settingHandler = $this->getSettingFormBySlug($slug);
         if(!$settingHandler) {
             return null;
         }

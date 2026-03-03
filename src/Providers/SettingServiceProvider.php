@@ -5,7 +5,7 @@ namespace Molitor\Setting\Providers;
 use Illuminate\Support\ServiceProvider;
 use Molitor\Setting\Repositories\SettingRepository;
 use Molitor\Setting\Repositories\SettingRepositoryInterface;
-use Molitor\Setting\Services\SettingHandlerService;
+use Molitor\Setting\Services\SettingHandler;
 
 class SettingServiceProvider extends ServiceProvider
 {
@@ -20,8 +20,8 @@ class SettingServiceProvider extends ServiceProvider
     {
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
 
-        $this->app->singleton(SettingHandlerService::class, function () {
-            return new SettingHandlerService();
+        $this->app->singleton(SettingHandler::class, function () {
+            return new SettingHandler();
         });
     }
 }
