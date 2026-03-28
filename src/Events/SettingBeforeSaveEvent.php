@@ -12,9 +12,6 @@ class SettingBeforeSaveEvent
 
     public string $slug;
 
-    /**
-     * @var array
-     */
     public array $data;
 
     /**

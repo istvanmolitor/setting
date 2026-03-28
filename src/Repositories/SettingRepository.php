@@ -1,19 +1,18 @@
 <?php
 
-
 namespace Molitor\Setting\Repositories;
 
 use Molitor\Setting\Models\Setting;
-use Molitor\Setting\Models\SettingGroup;
 
 class SettingRepository implements SettingRepositoryInterface
 {
     private Setting $setting;
+
     private array $data;
 
     public function __construct()
     {
-        $this->setting = new Setting();
+        $this->setting = new Setting;
         $this->init();
     }
 
@@ -47,10 +46,11 @@ class SettingRepository implements SettingRepositoryInterface
             );
         }
         $this->data[$name] = $value;
+
         return $this;
     }
 
-    public function get($name, $defaultValue = NULL): mixed
+    public function get($name, $defaultValue = null): mixed
     {
         return $this->exists($name) ? $this->data[$name] : $defaultValue;
     }
@@ -58,6 +58,7 @@ class SettingRepository implements SettingRepositoryInterface
     public function clear(string $name): self
     {
         $this->setting->where('name', $name)->delete();
+
         return $this;
     }
 
@@ -67,6 +68,7 @@ class SettingRepository implements SettingRepositoryInterface
         foreach ($values as $name => $defaultValue) {
             $resultValues[$name] = $this->get($name, $defaultValue);
         }
+
         return $resultValues;
     }
 

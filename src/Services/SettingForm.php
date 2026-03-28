@@ -30,6 +30,7 @@ abstract class SettingForm
         foreach ($this->getFields() as $field) {
             $preparedValues[$field] = $values[$field] ?? $defaultValues[$field] ?? null;
         }
+
         return $preparedValues;
     }
 
@@ -44,7 +45,7 @@ abstract class SettingForm
 
         $repository = $this->getRepository();
         foreach ($preparedValues as $fieldName => $value) {
-            $repository->set($slug . ':' . $fieldName, $value);
+            $repository->set($slug.':'.$fieldName, $value);
         }
     }
 
@@ -56,8 +57,9 @@ abstract class SettingForm
         $data = [];
         $repository = $this->getRepository();
         foreach ($this->getFields() as $field) {
-            $data[$field] = $repository->get($slug . ':' . $field, $defaultValues[$field] ?? null);
+            $data[$field] = $repository->get($slug.':'.$field, $defaultValues[$field] ?? null);
         }
+
         return $data;
     }
 
@@ -66,13 +68,9 @@ abstract class SettingForm
         return [];
     }
 
-    public function beforeSave(array $oldValues, array $values): void
-    {
-    }
+    public function beforeSave(array $oldValues, array $values): void {}
 
-    public function afterSave(array $values): void
-    {
-    }
+    public function afterSave(array $values): void {}
 
     public function fieldExists(string $name): bool
     {
@@ -82,12 +80,13 @@ abstract class SettingForm
     public function get(string $name): mixed
     {
         $default = $this->getDefaultValues()[$name] ?? null;
-        return $this->getRepository()->get($this->getSlug() . ':' . $name, $default);
+
+        return $this->getRepository()->get($this->getSlug().':'.$name, $default);
     }
 
     public function set(string $name, mixed $value): void
     {
-        $this->getRepository()->set($this->getSlug() . ':' . $name, $value);
+        $this->getRepository()->set($this->getSlug().':'.$name, $value);
     }
 
     public function canAccess(): bool

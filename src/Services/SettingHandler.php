@@ -10,7 +10,7 @@ class SettingHandler
 {
     protected array $settingFormClasses = [];
 
-    protected null|array $settingForms = null;
+    protected ?array $settingForms = null;
 
     public function registerSettingForm(string $className): void
     {
@@ -24,18 +24,20 @@ class SettingHandler
             foreach ($this->settingFormClasses as $className) {
                 /** @var SettingForm $settingForm */
                 $settingForm = app($className);
-                if (!($settingForm instanceof SettingForm)) {
-                    throw new Exception("Class {$className} must implement " . SettingForm::class);
+                if (! ($settingForm instanceof SettingForm)) {
+                    throw new Exception("Class {$className} must implement ".SettingForm::class);
                 }
                 $this->settingForms[$settingForm->getSlug()] = $settingForm;
             }
         }
+
         return $this->settingForms;
     }
 
-    public function getSettingFormBySlug(string $slug): SettingForm|null
+    public function getSettingFormBySlug(string $slug): ?SettingForm
     {
         $handles = $this->getSettingForms();
+
         return $handles[$slug] ?? null;
     }
 
@@ -49,6 +51,7 @@ class SettingHandler
                 'label' => $settingForm->getLabel(),
             ];
         }
+
         return $tabs;
     }
 
@@ -71,36 +74,40 @@ class SettingHandler
     public function getFormSchema(string $slug): array
     {
         $settingHandler = $this->getSettingFormBySlug($slug);
-        if(!$settingHandler) {
+        if (! $settingHandler) {
             return [];
         }
+
         return $settingHandler->getForm();
     }
 
     public function getSettingFormValues(string $slug): array
     {
         $settingHandler = $this->getSettingFormBySlug($slug);
-        if(!$settingHandler) {
+        if (! $settingHandler) {
             return [];
         }
+
         return $settingHandler->getValues();
     }
 
     public function getDefaults(string $slug): array
     {
         $settingHandler = $this->getSettingFormBySlug($slug);
-        if(!$settingHandler) {
+        if (! $settingHandler) {
             return [];
         }
+
         return $settingHandler->getDefaultValues();
     }
 
     public function get(string $slug, string $name): mixed
     {
         $settingHandler = $this->getSettingFormBySlug($slug);
-        if(!$settingHandler) {
+        if (! $settingHandler) {
             return null;
         }
+
         return $settingHandler->get($name);
     }
 }

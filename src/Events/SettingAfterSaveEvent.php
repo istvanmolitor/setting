@@ -12,9 +12,6 @@ class SettingAfterSaveEvent
 
     public string $slug;
 
-    /**
-     * @var array
-     */
     public array $data;
 
     /**

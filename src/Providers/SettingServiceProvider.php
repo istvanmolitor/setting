@@ -11,9 +11,9 @@ class SettingServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
-        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'setting');
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'setting');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
     }
 
     public function register()
@@ -21,7 +21,7 @@ class SettingServiceProvider extends ServiceProvider
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
 
         $this->app->singleton(SettingHandler::class, function () {
-            return new SettingHandler();
+            return new SettingHandler;
         });
     }
 }

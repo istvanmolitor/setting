@@ -11,8 +11,7 @@ class SettingApiController extends Controller
 {
     public function __construct(
         protected SettingHandler $settingHandler
-    ) {
-    }
+    ) {}
 
     public function index(): JsonResponse
     {
@@ -23,7 +22,7 @@ class SettingApiController extends Controller
     {
         $settingForm = $this->settingHandler->getSettingFormBySlug($slug);
 
-        if (!$settingForm) {
+        if (! $settingForm) {
             return response()->json(['message' => 'Setting not found'], 404);
         }
 
@@ -34,7 +33,7 @@ class SettingApiController extends Controller
     {
         $settingForm = $this->settingHandler->getSettingFormBySlug($slug);
 
-        if (!$settingForm) {
+        if (! $settingForm) {
             return response()->json(['message' => 'Setting not found'], 404);
         }
 
