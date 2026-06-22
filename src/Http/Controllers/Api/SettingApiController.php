@@ -37,7 +37,9 @@ class SettingApiController extends Controller
             return response()->json(['message' => 'Setting not found'], 404);
         }
 
-        $this->settingHandler->saveSettingFormValues($slug, $request->all());
+        $validated = $request->validate($settingForm->getValidationRules());
+
+        $this->settingHandler->saveSettingFormValues($slug, $validated);
 
         return response()->json([
             'message' => 'Settings saved successfully',

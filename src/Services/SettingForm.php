@@ -3,6 +3,7 @@
 namespace Molitor\Setting\Services;
 
 use Illuminate\Support\Facades\Gate;
+use Molitor\Setting\Enums\SettingFieldType;
 use Molitor\Setting\Repositories\SettingRepositoryInterface;
 
 abstract class SettingForm
@@ -18,16 +19,56 @@ abstract class SettingForm
 
     abstract public function getFields(): array;
 
+    public function getValidationRules(): array
+    {
+        $rules = [];
+        foreach ($this->getFields() as $fieldName => $config) {
+            $type = $config['type'] instanceof SettingFieldType
+                ? $config['type']
+                : SettingFieldType::from($config['type']);
+
+            $rules[$fieldName] = match ($type) {
+                SettingFieldType::Number   => ['nullable', 'numeric'],
+                SettingFieldType::Boolean  => ['nullable', 'boolean'],
+                SettingFieldType::Email    => ['nullable', 'string', 'email'],
+                SettingFieldType::Url      => ['nullable', 'string', 'url'],
+                SettingFieldType::Select   => $this->selectRule($config),
+                default                   => ['nullable', 'string'],
+            };
+        }
+        return $rules;
+    }
+
+    private function selectRule(array $config): array
+    {
+        $options = $config['options'] ?? [];
+        $values = array_column($options, 'value');
+        if (empty($values)) {
+            return ['nullable', 'string'];
+        }
+        return ['nullable', 'in:' . implode(',', $values)];
+    }
+
     public function getDefaultValues(): array
     {
-        return [];
+        $defaultValues = [];
+        foreach($this->getFields() as $fieldName => $options)
+        {
+            $defaultValues[$fieldName] = $options['default'] ?? null;
+        }
+        return $defaultValues;
+    }
+
+    public function getFieldNames(): array
+    {
+        return array_keys($this->getFields());
     }
 
     public function prepareValues(array $values): array
     {
         $defaultValues = $this->getDefaultValues();
         $preparedValues = [];
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getFieldNames() as $field) {
             $preparedValues[$field] = $values[$field] ?? $defaultValues[$field] ?? null;
         }
 
@@ -56,7 +97,7 @@ abstract class SettingForm
 
         $data = [];
         $repository = $this->getRepository();
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getFieldNames() as $field) {
             $data[$field] = $repository->get($slug.':'.$field, $defaultValues[$field] ?? null);
         }
 
@@ -74,7 +115,7 @@ abstract class SettingForm
 
     public function fieldExists(string $name): bool
     {
-        return array_key_exists($name, $this->getFields());
+        return array_key_exists($name, $this->getFieldNames());
     }
 
     public function get(string $name): mixed
@@ -99,6 +140,7 @@ abstract class SettingForm
         return [
             'slug' => $this->getSlug(),
             'label' => $this->getLabel(),
+            'fields' => $this->getFields(),
             'values' => $this->getValues(),
             'data' => $this->getData(),
         ];
