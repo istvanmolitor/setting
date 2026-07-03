@@ -64,12 +64,16 @@ abstract class SettingForm
         return array_keys($this->getFields());
     }
 
-    public function prepareValues(array $values): array
+    public function prepareValues(array $values, array $currentValues = []): array
     {
         $defaultValues = $this->getDefaultValues();
         $preparedValues = [];
         foreach ($this->getFieldNames() as $field) {
-            $preparedValues[$field] = $values[$field] ?? $defaultValues[$field] ?? null;
+            if (array_key_exists($field, $values)) {
+                $preparedValues[$field] = $values[$field];
+            } else {
+                $preparedValues[$field] = $currentValues[$field] ?? $defaultValues[$field] ?? null;
+            }
         }
 
         return $preparedValues;
@@ -80,7 +84,7 @@ abstract class SettingForm
         $oldValues = $this->getValues();
 
         $slug = $this->getSlug();
-        $preparedValues = $this->prepareValues($values);
+        $preparedValues = $this->prepareValues($values, $oldValues);
 
         $this->beforeSave($oldValues, $preparedValues);
 
