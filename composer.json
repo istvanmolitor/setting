@@ -16,7 +16,10 @@
     "autoload": {
         "psr-4": {
             "Molitor\\Setting\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "extra": {
         "laravel": {
