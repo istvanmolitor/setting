@@ -1,6 +1,6 @@
 {
     "name": "istvanmolitor/setting",
-    "description": "Setting",
+    "description": "Key-value application settings storage with a form builder for the Molitor package suite.",
     "type": "library",
     "license": "MIT",
     "authors": [
